@@ -1048,15 +1048,18 @@ GC_warn_proc GC_current_warn_proc = GC_default_warn_proc;
 }
 
 # if defined(__STDC__) || defined(__cplusplus)
-    GC_word GC_set_free_space_divisor (GC_word value)
+    void GC_set_free_space_divisor (GC_word value)
 # else
-    GC_word GC_set_free_space_divisor (value)
+    void GC_set_free_space_divisor (value)
     GC_word value;
 # endif
 {
-    GC_word old = GC_free_space_divisor;
     GC_free_space_divisor = value;
-    return old;
+}
+
+GC_word GC_get_free_space_divisor GC_PROTO((void))
+{
+    return GC_free_space_divisor;
 }
 
 #ifndef PCR

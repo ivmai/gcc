@@ -1,3 +1,8 @@
+2015-12-03  Ivan Maidanski  <ivmai@mail.ru>
+
+	* boehm.cc (_Jv_SetGCFreeSpaceDivisor): Use GC_get_free_space_divisor
+	to get old_div (before GC_set_free_space_divisor call).
+
 2016-06-01  Matthias Klose  <doko@ubuntu.com>
 
 	* libtool-version: Bump soversion.

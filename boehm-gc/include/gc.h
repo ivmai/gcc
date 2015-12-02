@@ -803,9 +803,9 @@ typedef void (*GC_warn_proc) GC_PROTO((char *msg, GC_word arg));
 GC_API GC_warn_proc GC_set_warn_proc GC_PROTO((GC_warn_proc p));
     /* Returns old warning procedure.	*/
 
-GC_API GC_word GC_set_free_space_divisor GC_PROTO((GC_word value));
-    /* Set free_space_divisor.  See above for definition.	*/
-    /* Returns old value.					*/
+GC_API void GC_set_free_space_divisor GC_PROTO((GC_word value));
+GC_API GC_word GC_get_free_space_divisor GC_PROTO((void));
+    /* Set and get free_space_divisor.  See above for the definition.	*/
 	
 /* The following is intended to be used by a higher level	*/
 /* (e.g. Java-like) finalization facility.  It is expected	*/

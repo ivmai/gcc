@@ -1,3 +1,10 @@
+2015-12-03  Ivan Maidanski  <ivmai@mail.ru>
+
+	* include/gc.h (GC_set_free_space_divisor): Change return type from
+	word to void.
+	(GC_get_free_space_divisor): New function.
+	* misc.c (GC_set_free_space_divisor): Decouple to setter and getter.
+
 2016-03-29  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	* configure.host: Set gc_use_mmap on *-kfreebsd-gnu* and *-gnu*.
