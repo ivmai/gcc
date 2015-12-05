@@ -1,3 +1,16 @@
+2015-12-05  Ivan Maidanski  <ivmai@mail.ru>
+
+	* boehm.cc (GC_enable, GC_disable): Remove prototype (as declared in
+	boehm-gc/include/gc.h).
+	[THREAD_LOCAL_ALLOC] (GC_REDIRECT_TO_LOCAL): Define before include
+	gc_gcj.h file.
+	* boehm.cc: Remove 'extern "C"' for included boehm-gc/include header
+	files (they are properly decorated inside now); remove include
+	"gc_local_alloc.h" (as it is implicitly included now by
+	boehm-gc/include/gc_gcj.h); include "gc_gcj.h" before any other
+	boehm-gc header file (to let GC_GCJ_MALLOC be properly redefined to
+	a thread-local allocator in boehm-gc/include/gc_local_alloc.h).
+
 2015-12-03  Ivan Maidanski  <ivmai@mail.ru>
 
 	* boehm.cc (_Jv_SetGCFreeSpaceDivisor): Use GC_get_free_space_divisor

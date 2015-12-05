@@ -2,6 +2,10 @@
 #   include "gc.h"
 # endif
 
+#ifdef __cplusplus
+  extern "C" {
+#endif
+
 /*
  * Invoke all remaining finalizers that haven't yet been run.
  * This is needed for strict compliance with the Java standard, 
@@ -18,4 +22,6 @@
  */
 void GC_finalize_all();
 
-
+#ifdef __cplusplus
+  } /* end of extern "C" */
+#endif

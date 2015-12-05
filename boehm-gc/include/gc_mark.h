@@ -29,6 +29,10 @@
 #   include "gc.h"
 # endif
 
+# ifdef __cplusplus
+    extern "C" {
+# endif
+
 /* A client supplied mark procedure.  Returns new mark stack pointer.	*/
 /* Primary effect should be to push new entries on the mark stack.	*/
 /* Mark stack pointer values are passed and returned explicitly.	*/
@@ -199,5 +203,8 @@ void GC_register_describe_type_fn GC_PROTO((int kind, GC_describe_type_fn knd));
 				/* to be used when printing objects	*/
 				/* of a particular kind.		*/
 
-#endif  /* GC_MARK_H */
+# ifdef __cplusplus
+    } /* end of extern "C" */
+# endif
 
+#endif  /* GC_MARK_H */

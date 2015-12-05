@@ -49,6 +49,10 @@
 #   include "gc_gcj.h"
 #endif
 
+#ifdef __cplusplus
+  extern "C" {
+#endif
+
 /* We assume ANSI C for this interface.	*/
 
 GC_PTR GC_local_malloc(size_t bytes);
@@ -85,5 +89,9 @@ GC_PTR GC_local_malloc_atomic(size_t bytes);
 # 	define GC_GCJ_MALLOC(s,d) GC_LOCAL_GCJ_MALLOC(s,d)
 #   endif
 # endif
+
+#ifdef __cplusplus
+  } /* end of extern "C" */
+#endif
 
 #endif /* GC_LOCAL_ALLOC_H */

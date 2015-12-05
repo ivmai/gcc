@@ -1061,14 +1061,6 @@ GC_API void GC_register_has_static_roots_callback
 # include "gc_amiga_redirects.h"
 #endif
 
-#if defined(GC_REDIRECT_TO_LOCAL) && !defined(GC_LOCAL_ALLOC_H)
-#  include  "gc_local_alloc.h"
-#endif
-
-#ifdef __cplusplus
-    }  /* end of extern "C" */
-#endif
-
 /* External thread suspension support. These functions do not implement
  * suspension counts or any other higher-level abstraction. Threads which
  * have been suspended numerous times will resume with the very first call
@@ -1080,4 +1072,18 @@ GC_API void GC_suspend_thread GC_PROTO((pthread_t));
 GC_API void GC_resume_thread GC_PROTO((pthread_t));
 GC_API int GC_is_thread_suspended GC_PROTO((pthread_t));
 #endif
+
+#ifdef __cplusplus
+    } /* end of extern "C" */
+#endif
+
+#if defined(GC_REDIRECT_TO_LOCAL) && !defined(GC_LOCAL_ALLOC_H) \
+    && !defined(GC_GCJ_H)
+  /* In case of gc.h is included from gc_gcj.h file, gc_local_alloc.h	*/
+  /* should be included at the end of gc_gcj.h instead of gc.h to have	*/
+  /* all GCJ symbols defined before some of them are redefined to	*/
+  /* their thread-local counterparts.					*/
+# include "gc_local_alloc.h"
+#endif
+
 #endif /* _GC_H */

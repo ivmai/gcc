@@ -1,3 +1,17 @@
+2015-12-05  Ivan Maidanski  <ivmai@mail.ru>
+
+	* include/gc.h (GC_suspend_thread, GC_resume_thread,
+	GC_is_thread_suspended): Move inside 'extern "C"' block.
+	[GC_REDIRECT_TO_LOCAL]: Include gc_local_alloc.h outside 'extern "C"'
+	block; do not include gc_local_alloc.h if gc.h is included from
+	gc_gcj.h (so that GC_[LOCAL_]GCJ_MALLOC to be defined after other GCJ
+	symbols).
+	* include/gc_gcj.h [__cplusplus]: Wrap all declarations into
+	'extern "C"' block.
+	* include/gc_local_alloc.h [__cplusplus]: Likewise.
+	* include/javaxfc.h [__cplusplus]: Likewise.
+	* include/gc_gcj.h [GC_REDIRECT_TO_LOCAL]: Include gc_local_alloc.h.
+
 2015-12-03  Ivan Maidanski  <ivmai@mail.ru>
 
 	* include/gc.h (GC_set_free_space_divisor): Change return type from

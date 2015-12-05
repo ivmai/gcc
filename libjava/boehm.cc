@@ -38,8 +38,6 @@ details.  */
 #include <dlfcn.h>
 #endif
 
-extern "C"
-{
 #include <gc_config.h>
 
 // Set GC_DEBUG before including gc.h!
@@ -47,19 +45,13 @@ extern "C"
 # define GC_DEBUG
 #endif
 
-#include <gc_mark.h>
-#include <gc_gcj.h>
-#include <javaxfc.h>  // GC_finalize_all declaration.  
-
 #ifdef THREAD_LOCAL_ALLOC
 # define GC_REDIRECT_TO_LOCAL
-# include <gc_local_alloc.h>
 #endif
+#include <gc_gcj.h> // includes gc.h and gc_local_alloc.h
 
-  // From boehm's misc.c 
-  void GC_enable();
-  void GC_disable();
-};
+#include <gc_mark.h>
+#include <javaxfc.h>  // GC_finalize_all declaration.
 
 #define MAYBE_MARK(Obj, Top, Limit, Source)  \
 	Top=GC_MARK_AND_PUSH((GC_PTR) Obj, Top, Limit, (GC_PTR *) Source)
