@@ -1,3 +1,35 @@
+2015-12-10  Ivan Maidanski  <ivmai@mail.ru>
+
+	* AmigaOS.c (GC_get_stack_base): Rename to GC_get_main_stack_base.
+	* include/private/gc_priv.h (GC_get_stack_base): Likewise.
+	* include/gc.h (struct GC_stack_base): New public type.
+	(GC_SUCCESS, GC_UNIMPLEMENTED): New public macro.
+	(GC_get_thread_stack_base): Replace with
+	int GC_get_stack_base(struct GC_stack_base*); declare even in
+	a single-threaded case; refine comment.
+	* misc.c (GC_init_inner): Rename GC_get_stack_base to
+	GC_get_main_stack_base.
+	(GC_init_inner): Replace GC_get_thread_stack_base to
+	GC_get_stack_base.
+	* win32_threads.c [CYGWIN32] (GC_get_thread_stack_base): Likewise.
+	* os_dep.c [MSWIN32 || MSWINCE || BEOS || OS2] (GC_get_stack_base):
+	Accommodate to GC_get_stack_base prototype change.
+	* win32_threads.c (GC_new_thread): Likewise.
+	* os_dep.c (HAVE_GET_STACK_BASE): Define in every case when
+	target-specific GC_get_stack_base is defined (including for cases
+	when GC_get_stack_base is pthread_support.c or win32_threads.c).
+	(GC_get_stack_base): Rename to GC_get_main_stack_base (except for
+	Win32, WinCE, BeOS and OS/2).
+	(GET_MAIN_STACKBASE_SPECIAL): Define in every case when
+	target-specific GC_get_main_stack_base is defined.
+	[!HAVE_GET_STACK_BASE] (GC_get_stack_base): Define with the default
+	implementation.
+	[!GET_MAIN_STACKBASE_SPECIAL] (GC_get_main_stack_base): Likewise.
+	* pthread_support.c (GC_get_thread_stack_base): Replace to
+	GC_get_stack_base; set reg_base for IA64.
+	[!GC_DARWIN_THREADS] (GC_register_my_thread): Call GC_get_stack_base
+	instead of GC_get_thread_stack_base and GC_save_regs_in_stack.
+
 2015-12-05  Ivan Maidanski  <ivmai@mail.ru>
 
 	* include/gc.h (GC_suspend_thread, GC_resume_thread,

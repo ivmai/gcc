@@ -80,6 +80,7 @@ extern LONG WINAPI GC_write_fault_handler(struct _EXCEPTION_POINTERS *exc_info);
  */
 static GC_thread GC_new_thread(void) {
   int i;
+  struct GC_stack_base sb;
   /* It appears to be unsafe to acquire a lock here, since this	*/
   /* code is apparently not preeemptible on some systems.	*/
   /* (This is based on complaints, not on Microsoft's official	*/
@@ -131,11 +132,11 @@ static GC_thread GC_new_thread(void) {
 	GC_printf1("Last error code: %lx\n", last_error);
 	ABORT("DuplicateHandle failed");
   }
-  thread_table[i].stack_base = GC_get_stack_base();
+  if (GC_get_stack_base(&sb) == GC_UNIMPLEMENTED)
+    ABORT("Failed to find stack base in GC_new_thread");
+  thread_table[i].stack_base = sb.mem_base;
   /* Up until this point, GC_push_all_stacks considers this thread	*/
   /* invalid.								*/
-  if (thread_table[i].stack_base == NULL) 
-    ABORT("Failed to find stack base in GC_new_thread");
   /* Up until this point, this entry is viewed as reserved but invalid	*/
   /* by GC_delete_thread.						*/
   thread_table[i].id = GetCurrentThreadId();
@@ -757,14 +758,15 @@ int GC_pthread_detach(pthread_t thread)
     return result;
 }
 
-GC_PTR GC_get_thread_stack_base()
+int GC_get_stack_base(struct GC_stack_base *sb)
 {
 #ifdef __x86_64__
-  return ((NT_TIB*)NtCurrentTeb())->StackBase;
+  sb -> mem_base = ((NT_TIB*)NtCurrentTeb())->StackBase;
 #else
   extern GC_PTR _tlsbase __asm__ ("%fs:4");
-  return _tlsbase;
+  sb -> mem_base = _tlsbase;
 #endif
+  return GC_SUCCESS;
 }
 
 #else /* !CYGWIN32 */

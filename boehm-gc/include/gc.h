@@ -926,6 +926,24 @@ GC_API void (*GC_is_visible_print_proc)
 # include "gc_pthread_redirects.h"
 #endif
 
+/* Structure representing the base of a thread stack.			*/
+struct GC_stack_base {
+    void * mem_base; /* Base of memory stack. */
+#   if defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
+	void * reg_base; /* Base of separate register stack. */
+#   endif
+};
+
+#define GC_SUCCESS 0
+#define GC_UNIMPLEMENTED 3	/* Not yet implemented on the platform.	*/
+
+/* Attempt to fill in the GC_stack_base structure with the stack base	*/
+/* for this thread.  This appears to be required to implement anything	*/
+/* like the JNI AttachCurrentThread in an environment in which new	*/
+/* threads are not automatically registered with the collector. 	*/
+/* Returns GC_SUCCESS or GC_UNIMPLEMENTED.				*/
+GC_API int GC_get_stack_base GC_PROTO((struct GC_stack_base *));
+
 # if defined(PCR) || defined(GC_SOLARIS_THREADS) || \
      defined(GC_PTHREADS) || defined(GC_WIN32_THREADS)
    	/* Any flavor of threads except SRC_M3.	*/
@@ -945,8 +963,6 @@ GC_API void GC_register_my_thread GC_PROTO((void));
 /* to the garbage collected heap.  Once registered, a thread will be	*/
 /* stopped during garbage collections.					*/
 GC_API void GC_unregister_my_thread GC_PROTO((void));
-
-GC_API GC_PTR GC_get_thread_stack_base GC_PROTO((void));
 
 /* This returns a list of objects, linked through their first		*/
 /* word.  Its use can greatly reduce lock contention problems, since	*/

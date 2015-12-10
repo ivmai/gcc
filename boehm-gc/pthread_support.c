@@ -1127,7 +1127,7 @@ WRAP_FUNC(pthread_detach)(pthread_t thread)
 
 GC_bool GC_in_thread_creation = FALSE;
 
-GC_PTR GC_get_thread_stack_base()
+int GC_get_stack_base(struct GC_stack_base *sb)
 {  
 # ifdef HAVE_PTHREAD_GETATTR_NP
   pthread_t my_pthread;
@@ -1141,7 +1141,7 @@ GC_PTR GC_get_thread_stack_base()
 #   ifdef DEBUG_THREADS
       GC_printf0("Can not determine stack base for attached thread");
 #   endif
-      return 0;
+      return GC_UNIMPLEMENTED;
     }
   pthread_attr_getstack (&attr, (void **) &stack_addr, &stack_size);
   pthread_attr_destroy (&attr);
@@ -1151,16 +1151,22 @@ GC_PTR GC_get_thread_stack_base()
 #   endif
 
 #   ifdef STACK_GROWS_DOWN
-      return stack_addr + stack_size;
+      sb -> mem_base = stack_addr + stack_size;
 #   else
-      return stack_addr;
+      sb -> mem_base = stack_addr;
 #   endif
+#   ifdef IA64
+      sb -> reg_base = (void*)(GC_save_regs_in_stack() & ~(GC_page_size - 1));
+	/* This is not 100% convincing.  We should also read this	*/
+	/* from /proc, but the hook to do so isn't there yet.		*/
+#   endif
+    return GC_SUCCESS;
 
 # else
 #   ifdef DEBUG_THREADS
 	GC_printf0("Can not determine stack base for attached thread");
 #   endif
-  return 0;
+    return GC_UNIMPLEMENTED;
 # endif
 }
 
@@ -1168,6 +1174,11 @@ void GC_register_my_thread()
 {
   GC_thread me;
   pthread_t my_pthread;
+# if !defined(GC_DARWIN_THREADS) || defined(IA64)
+    struct GC_stack_base sb;
+    if (GC_get_stack_base(&sb) == GC_UNIMPLEMENTED)
+      ABORT("Can not determine stack base for attached thread");
+# endif
 
   my_pthread = pthread_self();
 #   ifdef DEBUG_THREADS
@@ -1197,9 +1208,7 @@ void GC_register_my_thread()
 #ifdef GC_DARWIN_THREADS
     me -> stop_info.mach_thread = mach_thread_self();
 #else
-    me -> stack_end = GC_get_thread_stack_base();    
-    if (me -> stack_end == 0)
-      GC_abort("Can not determine stack base for attached thread");
+    me -> stack_end = sb.mem_base;
     
 #   ifdef STACK_GROWS_DOWN
       me -> stop_info.stack_ptr = me -> stack_end - 0x10;
@@ -1209,10 +1218,7 @@ void GC_register_my_thread()
 #endif
 
 #   ifdef IA64
-      me -> backing_store_end = (ptr_t)
-			(GC_save_regs_in_stack() & ~(GC_page_size - 1));
-      /* This is also < 100% convincing.  We should also read this 	*/
-      /* from /proc, but the hook to do so isn't there yet.		*/
+      me -> backing_store_end = sb.reg_base;
 #   endif /* IA64 */
 
 #   if defined(THREAD_LOCAL_ALLOC) && !defined(DBG_HDRS_ALL)

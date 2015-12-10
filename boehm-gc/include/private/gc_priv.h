@@ -1493,7 +1493,7 @@ GC_bool GC_register_main_static_data GC_PROTO((void));
 		/* dynamic library registration.			*/
   
 /* Machine dependent startup routines */
-ptr_t GC_get_stack_base GC_PROTO((void));	/* Cold end of stack */
+ptr_t GC_get_main_stack_base GC_PROTO((void));	/* Cold end of stack */
 #ifdef IA64
   ptr_t GC_get_register_stack_base GC_PROTO((void));
   					/* Cold end of register stack.	*/

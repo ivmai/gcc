@@ -639,42 +639,53 @@ word GC_get_writable_length(ptr_t p, ptr_t *base)
     return(buf.RegionSize);
 }
 
-ptr_t GC_get_stack_base()
+int GC_get_stack_base(struct GC_stack_base *sb)
 {
     int dummy;
     ptr_t sp = (ptr_t)(&dummy);
     ptr_t trunc_sp = (ptr_t)((word)sp & ~(GC_page_size - 1));
     word size = GC_get_writable_length(trunc_sp, 0);
    
-    return(trunc_sp + size);
+    sb -> mem_base = trunc_sp + size;
+    return GC_SUCCESS;
 }
+#   define HAVE_GET_STACK_BASE
 
+# elif defined(CYGWIN32) && defined(GC_WIN32_THREADS)
+
+    /* GC_get_stack_base() is defined in win32_threads.c.	*/
+#   define HAVE_GET_STACK_BASE
 
 # endif /* MS Windows */
 
 # ifdef BEOS
 # include <kernel/OS.h>
-ptr_t GC_get_stack_base(){
+int GC_get_stack_base(struct GC_stack_base *sb)
+{
 	thread_info th;
 	get_thread_info(find_thread(NULL),&th);
-	return th.stack_end;
+	sb -> mem_base = th.stack_end;
+	return GC_SUCCESS;
 }
+#   define HAVE_GET_STACK_BASE
 # endif /* BEOS */
 
 
 # ifdef OS2
 
-ptr_t GC_get_stack_base()
+int GC_get_stack_base(struct GC_stack_base *sb)
 {
     PTIB ptib;
     PPIB ppib;
     
     if (DosGetInfoBlocks(&ptib, &ppib) != NO_ERROR) {
     	GC_err_printf0("DosGetInfoBlocks failed\n");
-    	ABORT("DosGetInfoBlocks failed\n");
+	return GC_UNIMPLEMENTED;
     }
-    return((ptr_t)(ptib -> tib_pstacklimit));
+    sb -> mem_base = (void *)(ptib -> tib_pstacklimit);
+    return GC_SUCCESS;
 }
+#   define HAVE_GET_STACK_BASE
 
 # endif /* OS2 */
 
@@ -682,6 +693,7 @@ ptr_t GC_get_stack_base()
 #   define GC_AMIGA_SB
 #   include "AmigaOS.c"
 #   undef GC_AMIGA_SB
+#   define GET_MAIN_STACKBASE_SPECIAL
 # endif /* AMIGA */
 
 # if defined(NEED_FIND_LIMIT) || defined(UNIX_LIKE)
@@ -819,10 +831,11 @@ ptr_t GC_get_stack_base()
 # endif
 
 #if defined(ECOS) || defined(NOSYS)
-  ptr_t GC_get_stack_base()
+  ptr_t GC_get_main_stack_base GC_PROTO((void))
   {
     return STACKBOTTOM;
   }
+# define GET_MAIN_STACKBASE_SPECIAL
 #endif
 
 #ifdef HPUX_STACKBOTTOM
@@ -1059,7 +1072,7 @@ ptr_t GC_get_stack_base()
 #if !defined(BEOS) && !defined(AMIGA) && !defined(MSWIN32) \
     && !defined(MSWINCE) && !defined(OS2) && !defined(NOSYS) && !defined(ECOS)
 
-ptr_t GC_get_stack_base()
+ptr_t GC_get_main_stack_base GC_PROTO((void))
 {
 #   if defined(HEURISTIC1) || defined(HEURISTIC2) || \
        defined(LINUX_STACKBOTTOM) || defined(FREEBSD_STACKBOTTOM) || \
@@ -1118,8 +1131,40 @@ ptr_t GC_get_stack_base()
     	return(result);
 #   endif /* STACKBOTTOM */
 }
+#   define GET_MAIN_STACKBASE_SPECIAL
 
 # endif /* ! AMIGA, !OS 2, ! MS Windows, !BEOS, !NOSYS, !ECOS */
+
+#if defined(GC_PTHREADS) && !defined(GC_SOLARIS_THREADS) \
+    && !defined(GC_WIN32_THREADS)
+    /* GC_get_stack_base() is defined in pthread_support.c.	*/
+#   define HAVE_GET_STACK_BASE
+#endif
+
+#ifndef HAVE_GET_STACK_BASE
+    int GC_get_stack_base(struct GC_stack_base *sb)
+    {
+#     if defined(GET_MAIN_STACKBASE_SPECIAL) && !defined(THREADS) \
+	 && !defined(IA64)
+	sb->mem_base = GC_get_main_stack_base();
+	return GC_SUCCESS;
+#     else
+	return GC_UNIMPLEMENTED;
+#     endif
+    }
+#endif /* !HAVE_GET_STACK_BASE */
+
+#ifndef GET_MAIN_STACKBASE_SPECIAL
+  /* This is always called from the main thread.  Default implementation. */
+  ptr_t GC_get_main_stack_base GC_PROTO((void))
+  {
+    struct GC_stack_base sb;
+
+    if (GC_get_stack_base(&sb) != GC_SUCCESS)
+      ABORT("GC_get_stack_base failed");
+    return (ptr_t)sb.mem_base;
+  }
+#endif /* !GET_MAIN_STACKBASE_SPECIAL */
 
 /*
  * Register static data segment(s) as roots.

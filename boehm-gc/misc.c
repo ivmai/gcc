@@ -677,10 +677,14 @@ void GC_init_inner()
         # if defined(GC_PTHREADS) && ! defined(GC_SOLARIS_THREADS)
 	/* Use thread_stack_base if available, as GC could be initialized from
 	   a thread that is not the "main" thread.  */
-	GC_stackbottom = GC_get_thread_stack_base();
+	  struct GC_stack_base sb;
+	  sb.mem_base = NULL;
+	  (void)GC_get_stack_base(&sb);
+		/* In case of failure, mem_base remains NULL.		*/
+	  GC_stackbottom = sb.mem_base;
 	# endif
 	if (GC_stackbottom == 0)
-	  GC_stackbottom = GC_get_stack_base();
+	  GC_stackbottom = GC_get_main_stack_base();
 #       if (defined(LINUX) || defined(HPUX)) && defined(IA64)
 	  GC_register_stackbottom = GC_get_register_stack_base();
 #       endif
