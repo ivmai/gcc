@@ -527,6 +527,23 @@ static DWORD WINAPI thread_start(LPVOID arg)
 
 #endif /* !CYGWIN32 */
 
+int GC_register_my_thread(struct GC_stack_base *sb)
+{
+#   if defined(GC_DLL) && !defined(CYGWIN32) && !defined(MSWINCE)
+	/* Registered by DllMain. */
+	return GC_DUPLICATE;
+#   else
+	/* TODO: Implement. */
+	return GC_UNIMPLEMENTED;
+#   endif
+}
+
+int GC_unregister_my_thread GC_PROTO((void))
+{
+    /* TODO: Implement. */
+    return GC_UNIMPLEMENTED;
+}
+
 #ifdef MSWINCE
 
 typedef struct {

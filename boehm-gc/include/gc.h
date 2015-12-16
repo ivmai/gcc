@@ -935,6 +935,7 @@ struct GC_stack_base {
 };
 
 #define GC_SUCCESS 0
+#define GC_DUPLICATE 1		/* Was already registered.		*/
 #define GC_UNIMPLEMENTED 3	/* Not yet implemented on the platform.	*/
 
 /* Attempt to fill in the GC_stack_base structure with the stack base	*/
@@ -954,15 +955,13 @@ GC_API int GC_get_stack_base GC_PROTO((struct GC_stack_base *));
 /* a thread can allocate garbage collected memory, or assign pointers	*/
 /* to the garbage collected heap.  Once registered, a thread will be	*/
 /* stopped during garbage collections.					*/
-GC_API void GC_register_my_thread GC_PROTO((void));
+/* Returns GC_SUCCESS on success, GC_DUPLICATE if already done. 	*/
+/* On some platforms it returns GC_UNIMPLEMENTED.			*/
+GC_API int GC_register_my_thread GC_PROTO((struct GC_stack_base *));
 
-/* Register the current thread, with the indicated stack base, as	*/
-/* a new thread whose stack(s) should be traced by the GC.  If a 	*/
-/* platform does not implicitly do so, this must be called before a	*/
-/* thread can allocate garbage collected memory, or assign pointers	*/
-/* to the garbage collected heap.  Once registered, a thread will be	*/
-/* stopped during garbage collections.					*/
-GC_API void GC_unregister_my_thread GC_PROTO((void));
+/* Unregister the current thread.					*/
+/* Returns GC_SUCCESS or GC_UNIMPLEMENTED.				*/
+GC_API int GC_unregister_my_thread GC_PROTO((void));
 
 /* This returns a list of objects, linked through their first		*/
 /* word.  Its use can greatly reduce lock contention problems, since	*/

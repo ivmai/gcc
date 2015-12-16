@@ -738,20 +738,26 @@ _Jv_IsThreadSuspended (_Jv_Thread_t *thread)
 void
 _Jv_GCAttachThread ()
 {
-  // The registration interface is only defined on posixy systems and
-  // only actually works if pthread_getattr_np is defined.
-  // FIXME: until gc7 it is simpler to disable this on solaris.
-#if defined(HAVE_PTHREAD_GETATTR_NP) && !defined(GC_SOLARIS_THREADS) \
-    && !defined(GC_WIN32_THREADS)
-  GC_register_my_thread ();
+#if defined(GC_PTHREADS) || defined(GC_WIN32_THREADS)
+  struct GC_stack_base sb;
+
+  if (GC_get_stack_base (&sb) == GC_UNIMPLEMENTED)
+    {
+      // Do not fail in case of implicitly registered threads.
+      sb.mem_base = &sb;
+      if (GC_register_my_thread (&sb) != GC_DUPLICATE)
+        JvFail ("Cannot determine stack base for attached thread");
+      return;
+    }
+  if (GC_register_my_thread (&sb) == GC_UNIMPLEMENTED)
+    JvFail ("Cannot attach thread");
 #endif
 }
 
 void
 _Jv_GCDetachThread ()
 {
-#if defined(HAVE_PTHREAD_GETATTR_NP) && !defined(GC_SOLARIS_THREADS) \
-    && !defined(GC_WIN32_THREADS)
+#if defined(GC_PTHREADS) || defined(GC_WIN32_THREADS)
   GC_unregister_my_thread ();
 #endif
 }

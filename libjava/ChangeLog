@@ -1,3 +1,16 @@
+2015-12-17  Ivan Maidanski  <ivmai@mail.ru>
+
+	* boehm.cc (_Jv_GCAttachThread, _Jv_GCDetachThread): Do not test
+	HAVE_PTHREAD_GETATTR_NP and GC_SOLARIS_THREADS macros, test
+	GC_PTHREADS macro instead (i.e., invoke GC thread register/unregister
+	for all multi-threaded targets); remove the relevant comment.
+	(_Jv_GCAttachThread): Declare "sb" local variable; invoke
+	GC_get_stack_base (pass obtained stack base to GC_register_my_thread);
+	call JvFail with the appropriate message in case of GC_get_stack_base
+	or GC_register_my_thread failure (but handle properly the case when
+	GC_get_stack_base returns GC_UNIMPLEMENTED but the thread is already
+	registered implicitly).
+
 2015-12-05  Ivan Maidanski  <ivmai@mail.ru>
 
 	* boehm.cc (GC_enable, GC_disable): Remove prototype (as declared in

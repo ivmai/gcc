@@ -1,3 +1,17 @@
+2015-12-17  Ivan Maidanski  <ivmai@mail.ru>
+
+	* include/gc.h (GC_DUPLICATE): New public macro.
+	(GC_register_my_thread): Change prototype (accept GC_stack_base*).
+	(GC_register_my_thread, GC_unregister_my_thread): Change prototype
+	(return operation completion status); update comment.
+	* pthread_support.c (GC_register_my_thread): Change prototype; change
+	"sb" type to pointer; do not call GC_get_stack_base (it is called by
+	GC_register_my_thread caller now); return GC_DUPLICATE or GC_SUCCESS.
+	(GC_unregister_my_thread): Change prototype; return GC_SUCCESS.
+	* win32_threads.c (GC_register_my_thread, GC_unregister_my_thread):
+	New function (stub returning GC_DUPLICATE if threads are registered
+	implicitly otherwise GC_UNIMPLEMENTED).
+
 2015-12-10  Ivan Maidanski  <ivmai@mail.ru>
 
 	* AmigaOS.c (GC_get_stack_base): Rename to GC_get_main_stack_base.

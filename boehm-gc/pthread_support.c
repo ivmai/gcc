@@ -1170,15 +1170,10 @@ int GC_get_stack_base(struct GC_stack_base *sb)
 # endif
 }
 
-void GC_register_my_thread()
+int GC_register_my_thread(struct GC_stack_base *sb)
 {
   GC_thread me;
   pthread_t my_pthread;
-# if !defined(GC_DARWIN_THREADS) || defined(IA64)
-    struct GC_stack_base sb;
-    if (GC_get_stack_base(&sb) == GC_UNIMPLEMENTED)
-      ABORT("Can not determine stack base for attached thread");
-# endif
 
   my_pthread = pthread_self();
 #   ifdef DEBUG_THREADS
@@ -1195,7 +1190,7 @@ void GC_register_my_thread()
 #   ifdef DEBUG_THREADS
       GC_printf1("Attempt to re-attach known thread 0x%lx\n", my_pthread);
 #   endif
-      return;
+      return GC_DUPLICATE;
     }
 
   LOCK();
@@ -1208,7 +1203,7 @@ void GC_register_my_thread()
 #ifdef GC_DARWIN_THREADS
     me -> stop_info.mach_thread = mach_thread_self();
 #else
-    me -> stack_end = sb.mem_base;
+    me -> stack_end = sb -> mem_base;
     
 #   ifdef STACK_GROWS_DOWN
       me -> stop_info.stack_ptr = me -> stack_end - 0x10;
@@ -1218,16 +1213,17 @@ void GC_register_my_thread()
 #endif
 
 #   ifdef IA64
-      me -> backing_store_end = sb.reg_base;
+      me -> backing_store_end = sb -> reg_base;
 #   endif /* IA64 */
 
 #   if defined(THREAD_LOCAL_ALLOC) && !defined(DBG_HDRS_ALL)
         GC_init_thread_local(me);
 #   endif
   UNLOCK();
+  return GC_SUCCESS;
 }
 
-void GC_unregister_my_thread()
+int GC_unregister_my_thread GC_PROTO((void))
 {
   pthread_t my_pthread;
 
@@ -1238,6 +1234,7 @@ void GC_unregister_my_thread()
 #   endif
 
   GC_thread_exit_proc (0);
+  return GC_SUCCESS;
 }
 
 void * GC_start_routine(void * arg)
